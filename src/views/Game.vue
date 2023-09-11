@@ -3,6 +3,7 @@ import maker from '../utils/maker';
 import store from '../store';
 import { ref } from 'vue';
 
+import BingoBanner from '../components/BingoBanner.vue';
 import BingoButton from '../components/BingoButton.vue';
 
 const userMatrix = ref(maker());
@@ -18,12 +19,20 @@ const checkPattern = activeMatrix => {
     let completedPatterns = 0;
     const len = activeMatrix.length;
 
+    let max = { maxIndex: -1, maxValue: -1, type: 'v' };
+
     for (let i = 0; i < len; i++) {
         let hCounter = 0, vCounter = 0;
         for (let j = 0; j < len; j++) {
             activeMatrix[i][j].marked == true && hCounter++;
             activeMatrix[j][i].marked == true && vCounter++;
         }
+
+        if (hCounter > vCounter && hCounter > max.maxValue && hCounter < len) 
+            max = { maxIndex: i, maxValue: hCounter, type: 'h' }
+
+        if (vCounter > hCounter && vCounter > max.maxValue && vCounter < len)
+            max = { maxIndex: i, maxValue: hCounter, type: 'v' }
 
         hCounter == len && completedPatterns++;
         vCounter == len && completedPatterns++;
@@ -35,10 +44,44 @@ const checkPattern = activeMatrix => {
         activeMatrix[i][len-i-1].marked && diagonalRight++;
     }
   
-    diagonalLeft == 5 && completedPatterns++;
-    diagonalRight == 5 && completedPatterns++;
-    console.log(completedPatterns)
-    return { completedPatterns };
+    diagonalLeft == len && completedPatterns++;
+    diagonalRight == len && completedPatterns++;    
+
+    const { maxValue } = max;
+    if (diagonalLeft > maxValue && diagonalLeft > diagonalRight && diagonalLeft < len)
+        max = { maxIndex: -1, maxValue: diagonalLeft, type: 'dl' }
+    if (diagonalRight > maxValue && diagonalRight > diagonalLeft && diagonalRight < len)
+        max = { maxIndex: -1, maxValue: diagonalLeft, type: 'dr' }
+
+    const modules = {
+        'h': {
+            process: counter => activeMatrix[max.maxIndex][counter],
+            get: counter => [max.maxIndex, counter]
+        },
+        'v': {
+            process: counter => activeMatrix[counter][max.maxIndex],
+            get: counter => [counter, max.maxIndex]
+        },
+        'dl': {
+            process: counter => activeMatrix[counter][counter],
+            get: counter => [counter, counter]
+        },
+        'dr': {
+            process: counter => activeMatrix[counter][len-counter-1],
+            get: counter => [counter, len-counter-1]
+        }
+    }
+
+    const processor = module => {
+        for (let i = 0; i < len; i++)
+            if(!module.process(i).marked)
+                return module.get(i)
+        return [ -1, -1 ]
+    }
+
+    const [ row, col ] = processor(modules[max.type]);
+    console.log(row, ':', col);
+    return { completedPatterns, row, col };
 }
 
 const markCube = (rindex, cindex, letter, player) => {
@@ -81,6 +124,7 @@ const markCube = (rindex, cindex, letter, player) => {
                         :markCube="markCube"
                     />            
             </div>
+            <BingoBanner :completed="userCompletedPatterns" />
         </div>
     </div>
 </template>

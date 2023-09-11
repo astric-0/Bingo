@@ -1,5 +1,5 @@
 export default function (max = 5) {
-    let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    let chars = "ABCDEFGHIJKLMNOPQRSTUVWXY";
     let cubeMembers = chars.split('');
     
     let randomMembers = [];
