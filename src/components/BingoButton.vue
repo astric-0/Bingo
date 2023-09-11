@@ -8,7 +8,7 @@ let props = defineProps({
 
 const selectedStyle = ' btn-primary disabled '
 const notSelectedStyle = ' btn-outline-primary '
-const commonStyle = 'w-100 btn rounded '
+const commonStyle = 'w-100 btn rounded shadow '
 const classes = commonStyle + (props.button.marked ? selectedStyle : notSelectedStyle)
 
 </script>

@@ -7,23 +7,44 @@ import BingoButton from '../components/BingoButton.vue';
 
 const userMatrix = ref(maker());
 const computerMatrix = ref(maker());
+const userCompletedPatterns = ref(0);
+const computerCompletedPatterns = ref(0);
 
 const getMarker = (m, r, c) => {
     return { ...m[r][c], marked: true }
 }
 
 const checkPattern = activeMatrix => {
-    for (let i = 0; i < activeMatrix.value.length; i++) {
-        for (let j = 0; j < activeMatrix.value[i].length; j++) {
-            
+    let completedPatterns = 0;
+    const len = activeMatrix.length;
+
+    for (let i = 0; i < len; i++) {
+        let hCounter = 0, vCounter = 0;
+        for (let j = 0; j < len; j++) {
+            activeMatrix[i][j].marked == true && hCounter++;
+            activeMatrix[j][i].marked == true && vCounter++;
         }
+
+        hCounter == len && completedPatterns++;
+        vCounter == len && completedPatterns++;
     }
+
+    let diagonalLeft = 0, diagonalRight = 0;
+    for (let i = 0; i < len; i++) {
+        activeMatrix[i][i].marked && diagonalLeft++;
+        activeMatrix[i][len-i-1].marked && diagonalRight++;
+    }
+  
+    diagonalLeft == 5 && completedPatterns++;
+    diagonalRight == 5 && completedPatterns++;
+    console.log(completedPatterns)
+    return { completedPatterns };
 }
 
 const markCube = (rindex, cindex, letter, player) => {
-    const [ activeMatrix, passiveMatrix ] = (player == 'user') 
-        ? [ userMatrix, computerMatrix ]
-        : [ computerMatrix, userMatrix ]
+    const [ activeMatrix, passiveMatrix, completedPattern ] = (player == 'user') 
+        ? [ userMatrix, computerMatrix, userCompletedPatterns ]
+        : [ computerMatrix, userMatrix, computerCompletedPatterns ]
     ;
 
     activeMatrix.value[rindex][cindex] = getMarker(activeMatrix.value, rindex, cindex);
@@ -39,6 +60,9 @@ const markCube = (rindex, cindex, letter, player) => {
         }
         if (breakFlag) break;
     }
+
+    const cals = checkPattern(activeMatrix.value);
+    completedPattern.value = cals.completedPatterns;
 }
 
 </script>
