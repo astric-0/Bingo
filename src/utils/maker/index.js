@@ -8,8 +8,8 @@ export default function (max = 5) {
         for (let j = 0; j < max; j++) {
             const index = Math.floor(Math.random() * cubeMembers.length);
             randomMembers[i].push({
-                value: cubeMembers[index],
-                isSelected: false
+                letter: cubeMembers[index],
+                marked: false
             });
             cubeMembers.splice(index, 1);
         }
