@@ -19,13 +19,14 @@ const winCounter = ref([]);
 
 const checkStats = ref(false);
 
-const toggleStates = _ => checkStats.value = !checkStats.value;
+const toggleStats = _ => checkStats.value = !checkStats.value;
 
 const getMarker = (m, r, c) => {
     return { ...m[r][c], marked: true }
 }
 
 const newGame = _ => {
+    if (checkStats.value == true) toggleStats();
     computerMatrix.value = maker();
     userMatrix.value = maker();
     userCompletedPatterns.value = 0;
@@ -60,8 +61,7 @@ const markCube = (rindex, cindex, letter, player) => {
     const activeCals = checkPattern(activeMatrix.value);
     activeCompletedPattern.value = activeCals.completedPatterns;
 
-    if (checkWin(player, activeCompletedPattern.value, len))
-        return;
+    if (checkWin(player, activeCompletedPattern.value, len)) return;
 
     let breakFlag = false;
     for (let i = 0; i < len; i++) {
@@ -77,8 +77,7 @@ const markCube = (rindex, cindex, letter, player) => {
 
     const passiveCals = checkPattern(passiveMatrix.value);
     passiveCompletedPattern.value = passiveCals.completedPatterns;
-    if (checkWin(player, activeCompletedPattern.value, len))
-        return;
+    if (checkWin(player, activeCompletedPattern.value, len)) return;
 
     if (player == 'user') {
         const { row, col } = passiveCals;
@@ -98,7 +97,6 @@ const markCube = (rindex, cindex, letter, player) => {
                     :completedPatterns="userCompletedPatterns" />
                 <BingoBanner :completed="computerCompletedPatterns" color="danger" />
 
-
                 <BingoMatrix :key="computerMatrix" v-if="computerCompletedPatterns >= computerMatrix.length"
                     :matrix="computerMatrix" :markCube="markCube" color="danger"
                     :completedPatterns="computerCompletedPatterns" />
@@ -109,7 +107,7 @@ const markCube = (rindex, cindex, letter, player) => {
             <div class="d-flex">
                 <div class="btn-group mx-auto">
                     <Button label="New Game ?" :click="newGame" />
-                    <Button label="Check Stats ?" color="primary" :click="toggleStates" :active="checkStats" outline />
+                    <Button label="Check Stats ?" color="primary" :click="toggleStats" :active="checkStats" outline />
                 </div>
             </div>
         </div>
