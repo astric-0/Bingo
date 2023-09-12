@@ -1,14 +1,18 @@
 <script setup>
-let props = defineProps({
+const props = defineProps({
     button: Object,
     rindex: Number,
     cindex: Number,
-    markCube: Function
+    markCube: Function,
+    color: {
+        type: String, 
+        default: 'primary'
+    }
 })
 
-const selectedStyle = ' btn-primary disabled '
-const notSelectedStyle = ' btn-outline-primary '
-const commonStyle = 'w-100 btn rounded shadow '
+const selectedStyle = ` btn-${ props.color } disabled `
+const notSelectedStyle = ` text-${ props.color } `
+const commonStyle = `w-100 btn rounded shadow `
 const classes = commonStyle + (props.button.marked ? selectedStyle : notSelectedStyle)
 
 </script>

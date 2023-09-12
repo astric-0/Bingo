@@ -2,7 +2,11 @@
 import BingoButton from './BingoButton.vue';
 defineProps({
     matrix: Object,
-    markCube: Function
+    markCube: Function,
+    color: {
+        type: String,
+        default: 'primary'
+    }
 })
 </script>
 
@@ -15,6 +19,7 @@ defineProps({
             :rindex="Number(rindex)"
             :cindex="Number(cindex)" 
             :markCube="markCube" 
+            :color="color"
         />
     </div>
 </template>

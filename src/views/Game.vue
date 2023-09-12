@@ -121,9 +121,21 @@ const markCube = (rindex, cindex, letter, player) => {
     <div class="container d-flex align-items-center justify-content-center vh-100">
         <div class="w-50">
             <h4 class="text-center">{{ store.state.username }}</h4>            
-            <BingoMatrix :matrix="userMatrix" :key="userMatrix" :markCube="markCube" />
             <BingoBanner :completed="userCompletedPatterns" />
-            <BingoMatrix :matrix="computerMatrix" :key="computerMatrix" :markCube="markCube" />
+            <BingoMatrix 
+                :key="userMatrix" 
+                :matrix="userMatrix" 
+                :markCube="markCube"         
+            />
+            
+            <BingoBanner :completed="computerCompletedPatterns" color="danger" />
+            <BingoMatrix 
+                :key="computerMatrix" 
+                v-if="computerCompletedPatterns == computerMatrix.length" 
+                :matrix="computerMatrix" 
+                :markCube="markCube" 
+                color="danger"
+            />
         </div>
     </div>
 </template>
