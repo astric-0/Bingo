@@ -6,7 +6,12 @@ defineProps({
     color: {
         type: String,
         default: 'primary'
-    }
+    },
+    player: {
+        type: String,
+        default: 'user'
+    },
+    completedPatterns: Number
 })
 </script>
 
@@ -20,6 +25,7 @@ defineProps({
             :cindex="Number(cindex)" 
             :markCube="markCube" 
             :color="color"
+            :disabled="matrix.length <= completedPatterns"
         />
     </div>
 </template>

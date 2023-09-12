@@ -7,6 +7,14 @@ const props = defineProps({
     color: {
         type: String, 
         default: 'primary'
+    },
+    player: {
+        type: String,
+        default: 'user'
+    },
+    disabled: {
+        type: Boolean,
+        default: false
     }
 })
 
@@ -19,7 +27,7 @@ const classes = commonStyle + (props.button.marked ? selectedStyle : notSelected
 
 <template>
     <div class="col my-1">
-        <button :class="classes" @click="markCube(rindex, cindex, button.letter, 'user')">
+        <button :class="classes" @click="markCube(rindex, cindex, button.letter, player)" :disabled="disabled">
             {{ button.letter }}
         </button>
     </div>

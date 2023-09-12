@@ -2,100 +2,68 @@
 import maker from '../utils/maker';
 import store from '../store';
 import { ref } from 'vue';
+import Swal from 'sweetalert2';
 
 import BingoMatrix from '../components/BingoMatrix.vue';
 import BingoBanner from '../components/BingoBanner.vue';
+import Button from '../components/Button.vue';
+import Stats from '../components/Stats.vue';
+
+import checkPattern from '../utils/checkPattern';
 
 const userMatrix = ref(maker());
 const computerMatrix = ref(maker());
 const userCompletedPatterns = ref(0);
 const computerCompletedPatterns = ref(0);
+const winCounter = ref([]);
+
+const checkStats = ref(false);
+
+const toggleStates = _ => checkStats.value = !checkStats.value;
 
 const getMarker = (m, r, c) => {
     return { ...m[r][c], marked: true }
 }
 
-const checkPattern = activeMatrix => {
-    let completedPatterns = 0;
-    const len = activeMatrix.length;
+const newGame = _ => {
+    computerMatrix.value = maker();
+    userMatrix.value = maker();
+    userCompletedPatterns.value = 0;
+    computerCompletedPatterns.value = 0;
+}
 
-    let max = { maxIndex: -1, maxValue: -1, type: 'v' };
+const checkWin = (player, completedPatterns, max = userMatrix.value.length) => {
+    if (completedPatterns >= max) {
+        winCounter.value.push({
+            player,
+            time: new Date().toLocaleString(),
+            winnerName: player == 'user' ? store.getters.getUsername() ?? 'user' : 'Satan'
+        });
+        Swal.fire({
+            'title': player == 'user' ? 'You Won' : 'I won'
+        })
 
-    for (let i = 0; i < len; i++) {
-        let hCounter = 0, vCounter = 0;
-        for (let j = 0; j < len; j++) {
-            activeMatrix[i][j].marked == true && hCounter++;
-            activeMatrix[j][i].marked == true && vCounter++;
-        }
-
-        if ((hCounter > vCounter || vCounter == len) && hCounter > max.maxValue && hCounter < len) 
-            max = { maxIndex: i, maxValue: hCounter, type: 'h' }
-
-        if ((vCounter >= hCounter || hCounter == len) && vCounter > max.maxValue && vCounter < len)
-            max = { maxIndex: i, maxValue: vCounter, type: 'v' }
-
-        hCounter == len && completedPatterns++;
-        vCounter == len && completedPatterns++;
+        return true;
     }
-
-    let diagonalLeft = 0, diagonalRight = 0;
-    for (let i = 0; i < len; i++) {
-        activeMatrix[i][i].marked && diagonalLeft++;
-        activeMatrix[i][len-i-1].marked && diagonalRight++;
-    }
-  
-    diagonalLeft == len && completedPatterns++;
-    diagonalRight == len && completedPatterns++;    
-
-    const { maxValue } = max;
-    if (diagonalLeft >= maxValue && (diagonalLeft > diagonalRight || diagonalRight == len) && diagonalLeft < len)
-        max = { maxIndex: -1, maxValue: diagonalLeft, type: 'dl' }
-    if (diagonalRight >= maxValue && (diagonalRight >= diagonalLeft || diagonalLeft == len) && diagonalRight < len)
-        max = { maxIndex: -1, maxValue: diagonalLeft, type: 'dr' }
-
-    const modules = {
-        'h': {
-            process: counter => activeMatrix[max.maxIndex][counter],
-            get: counter => [max.maxIndex, counter]
-        },
-        'v': {
-            process: counter => activeMatrix[counter][max.maxIndex],
-            get: counter => [counter, max.maxIndex]
-        },
-        'dl': {
-            process: counter => activeMatrix[counter][counter],
-            get: counter => [counter, counter]
-        },
-        'dr': {
-            process: counter => activeMatrix[counter][len-counter-1],
-            get: counter => [counter, len-counter-1]
-        }
-    }
-
-    const processor = module => {
-        for (let i = 0; i < len; i++)
-            if(!module.process(i).marked)
-                return module.get(i);
-        return [ -1, -1 ]
-    }
-
-    const [ row, col ] = processor(modules[max.type]);
-    console.log(row, ':', col);
-    return { completedPatterns, row, col };
+    return false;
 }
 
 const markCube = (rindex, cindex, letter, player) => {
-    const [ activeMatrix, passiveMatrix, activeCompletedPattern, passiveCompletedPattern ] = (player == 'user') 
-        ? [ userMatrix, computerMatrix, userCompletedPatterns, computerCompletedPatterns ]
-        : [ computerMatrix, userMatrix, computerCompletedPatterns, userCompletedPatterns ]
-    ;
+    const [activeMatrix, passiveMatrix, activeCompletedPattern, passiveCompletedPattern] = (player == 'user')
+        ? [userMatrix, computerMatrix, userCompletedPatterns, computerCompletedPatterns]
+        : [computerMatrix, userMatrix, computerCompletedPatterns, userCompletedPatterns]
+        ;
+
+    const len = activeMatrix.value.length;
 
     activeMatrix.value[rindex][cindex] = getMarker(activeMatrix.value, rindex, cindex);
     const activeCals = checkPattern(activeMatrix.value);
     activeCompletedPattern.value = activeCals.completedPatterns;
-    
+
+    if (checkWin(player, activeCompletedPattern.value, len))
+        return;
+
     let breakFlag = false;
-    const len = passiveMatrix.value.length;
     for (let i = 0; i < len; i++) {
         for (let j = 0; j < len; j++) {
             if (passiveMatrix.value[i][j].letter == letter) {
@@ -109,10 +77,13 @@ const markCube = (rindex, cindex, letter, player) => {
 
     const passiveCals = checkPattern(passiveMatrix.value);
     passiveCompletedPattern.value = passiveCals.completedPatterns;
+    if (checkWin(player, activeCompletedPattern.value, len))
+        return;
+
     if (player == 'user') {
         const { row, col } = passiveCals;
         markCube(row, col, passiveMatrix.value[row][col].letter, 'computer');
-    }    
+    }
 }
 
 </script>
@@ -120,22 +91,27 @@ const markCube = (rindex, cindex, letter, player) => {
 <template>
     <div class="container d-flex align-items-center justify-content-center vh-100">
         <div class="w-50">
-            <h4 class="text-center">{{ store.state.username }}</h4>            
-            <BingoBanner :completed="userCompletedPatterns" />
-            <BingoMatrix 
-                :key="userMatrix" 
-                :matrix="userMatrix" 
-                :markCube="markCube"         
-            />
-            
-            <BingoBanner :completed="computerCompletedPatterns" color="danger" />
-            <BingoMatrix 
-                :key="computerMatrix" 
-                v-if="computerCompletedPatterns == computerMatrix.length" 
-                :matrix="computerMatrix" 
-                :markCube="markCube" 
-                color="danger"
-            />
+            <div v-if="!checkStats">
+                <h4 class="text-center">{{ store.state.username }}</h4>
+                <BingoBanner :completed="userCompletedPatterns" />
+                <BingoMatrix :key="userMatrix" :matrix="userMatrix" :markCube="markCube"
+                    :completedPatterns="userCompletedPatterns" />
+                <BingoBanner :completed="computerCompletedPatterns" color="danger" />
+
+
+                <BingoMatrix :key="computerMatrix" v-if="computerCompletedPatterns >= computerMatrix.length"
+                    :matrix="computerMatrix" :markCube="markCube" color="danger"
+                    :completedPatterns="computerCompletedPatterns" />
+            </div>
+            <div v-else>
+                <Stats :stats="winCounter" />
+            </div>
+            <div class="d-flex">
+                <div class="btn-group mx-auto">
+                    <Button label="New Game ?" :click="newGame" />
+                    <Button label="Check Stats ?" color="primary" :click="toggleStates" :active="checkStats" outline />
+                </div>
+            </div>
         </div>
     </div>
 </template>
