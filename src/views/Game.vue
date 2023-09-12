@@ -31,7 +31,7 @@ const checkPattern = activeMatrix => {
         if (hCounter > vCounter && hCounter > max.maxValue && hCounter < len) 
             max = { maxIndex: i, maxValue: hCounter, type: 'h' }
 
-        if (vCounter > hCounter && vCounter > max.maxValue && vCounter < len)
+        if (vCounter >= hCounter && vCounter > max.maxValue && vCounter < len)
             max = { maxIndex: i, maxValue: hCounter, type: 'v' }
 
         hCounter == len && completedPatterns++;
@@ -50,7 +50,7 @@ const checkPattern = activeMatrix => {
     const { maxValue } = max;
     if (diagonalLeft > maxValue && diagonalLeft > diagonalRight && diagonalLeft < len)
         max = { maxIndex: -1, maxValue: diagonalLeft, type: 'dl' }
-    if (diagonalRight > maxValue && diagonalRight > diagonalLeft && diagonalRight < len)
+    if (diagonalRight >= maxValue && diagonalRight > diagonalLeft && diagonalRight < len)
         max = { maxIndex: -1, maxValue: diagonalLeft, type: 'dr' }
 
     const modules = {
